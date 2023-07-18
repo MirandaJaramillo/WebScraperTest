@@ -1,18 +1,21 @@
-const axios = require("axios");
-const cheerio = require("cheerio");
-const express = require("express");
-const PORT = 8000;
+const puppeteer = require('puppeteer');
 
-const app = express();
-const oktaUrl = "https://status.okta.com/";
+(async () => {
+  const browser = await puppeteer.launch({
+    headless: false,
+    executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  });
+  const page = await browser.newPage();
+  await page.goto("https://status.okta.com/", {
+    waitUntil: 'domcontentloaded'
+  });
 
-axios(oktaUrl)
-     .then(res => {
-        const html = res.data;
-        console.log(html);
-     })
+  let data = await page.evaluate(() => {
+    const statusElement = document.querySelector("div.system__status_today_status");
+    const statusText = statusElement.textContent.trim();
+    return statusText;
+  });
 
-
-
-app.listen(PORT, ()=> console.log( `server running on ${PORT}`));
-
+  console.log(data);
+  await browser.close();
+})();
